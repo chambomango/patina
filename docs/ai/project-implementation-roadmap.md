@@ -178,7 +178,7 @@ General overview of the Epics and their statuses.
 
 **Outcome**: The user creates the generated application foundation that AI will inspect and build on.
 
-**Status**: TODO
+**Status**: DONE
 
 **Done when**:
 
@@ -208,7 +208,7 @@ General overview of the Epics and their statuses.
 
 **Outcome**: AI confirms the generated app shape and adds the source-agnostic Product type that all sources, dashboard UI, DB, filters, and review states will use.
 
-**Status**: TODO
+**Status**: DONE
 
 **Done when**:
 
@@ -216,7 +216,7 @@ General overview of the Epics and their statuses.
 - [ ] `Product` type exists.
 - [ ] `ProductSearchRequest` type exists.
 - [ ] `Product` includes source identity, source Product ID when available, source URL, title, price/currency, image, condition, location, timestamps, and review state where appropriate.
-- [ ] `ProductSearchRequest` includes initial search controls for eBay-backed requests, such as name, query, min price, max price, condition, buying option, category ID, and limit.
+- [ ] `ProductSearchRequest` includes initial search controls for eBay-backed requests, such as name, query, min price, max price, condition, and buying option.
 - [ ] UI-facing types do not import raw eBay response types.
 
 **Likely areas**:
@@ -301,7 +301,7 @@ General overview of the Epics and their statuses.
 - [ ] User can create a Product search request.
 - [ ] User can edit an existing Product search request.
 - [ ] User can delete a Product search request.
-- [ ] Request fields include initial controls such as name, query, min price, max price, condition, buying option, category ID, and limit.
+- [ ] Request fields include initial controls such as name, query, min price, max price, condition, and buying option.
 - [ ] Validation distinguishes required query/name data from optional filters.
 - [ ] UI names fields using app terms, not raw eBay API parameter names when that would be confusing.
 
