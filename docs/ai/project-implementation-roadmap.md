@@ -256,6 +256,35 @@ General overview of the Epics and their statuses.
 
 ---
 
+#### Task 1.2.1a — Add temporary seed Products for dashboard preview
+
+**Outcome**: Provide a small, clearly temporary set of normalized sample Products so the dashboard renders visible content during Feature 1.2 UI work, before eBay collection (Feature 1.3) and DB persistence (Feature 1.4) exist.
+
+**Status**: DONE — seed module created; the "renders in dashboard" check is realized by Task 1.2.1 once the shell exists.
+
+**Done when**:
+
+- [ ] A small sample `Product[]` (about 5 items) exists as an isolated, clearly labeled dev-only module.
+- [ ] Sample Products conform to the `Product` type, with no extra fields and no raw source JSON.
+- [ ] Sample data covers varied cases: missing image, missing price, different review states, and long titles.
+- [ ] The dashboard can render the sample Products so the board is not empty during development.
+- [ ] Seed usage is isolated so it is trivial to remove or disable.
+- [ ] Seed data is not the primary data path and is removed/replaced when DB-backed Products land (Task 1.4.4).
+
+**Likely areas**:
+
+- `src/features/products/seed/` (or similar isolated fixtures module)
+- `src/features/products/types/`
+- `src/app/` dashboard route once it exists (Task 1.2.1)
+
+**Notes**:
+
+- Added after initial planning. It relaxes the "empty state only" approach for development convenience, but the master plan rule still holds: seed/mock data must not become the primary Product source.
+- Keep it tiny. Do not build a seeding framework or fake eBay responses.
+- Remove or replace seed usage when the dashboard reads Products from the DB (Task 1.4.4).
+
+---
+
 #### Task 1.2.1 — Build utilitarian Product dashboard shell with Tailwind/shadcn
 
 **Outcome**: Create the responsive dashboard structure for Product discovery and triage without depending on live eBay data yet.
@@ -284,7 +313,7 @@ General overview of the Epics and their statuses.
 **Notes**:
 
 - Do not create separate mobile and desktop component trees unless unavoidable.
-- Do not use mock Product data as the primary Product source. Empty states are acceptable until eBay collection and DB persistence exist.
+- Do not use mock Product data as the primary Product source. Empty states are acceptable until eBay collection and DB persistence exist. The temporary seed Products from Task 1.2.1a may be rendered during development as non-primary preview content.
 - Do not over-polish visual design before a design system is supplied.
 - Utilitarian does not mean desktop-only or visually careless; the first UI should still be usable and intentional across viewport sizes.
 
@@ -642,6 +671,7 @@ General overview of the Epics and their statuses.
 
 - Server Components may fetch initial Product data directly through server-side Product query functions.
 - Client Components should not import DB helpers.
+- Remove the temporary seed Products from Task 1.2.1a once DB-backed Products are the dashboard source.
 
 ---
 
