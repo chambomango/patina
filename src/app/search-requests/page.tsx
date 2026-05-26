@@ -1,4 +1,4 @@
-import { ProductSearchRequestManager } from "@/features/product-search-requests/components/product-search-request-manager";
+import { ProductSearchRequestManager } from "@/features/product-search-requests/components/productSearchRequestManager";
 
 export default function SearchRequestsPage() {
   return (

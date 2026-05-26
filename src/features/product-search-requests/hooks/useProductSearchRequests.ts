@@ -4,7 +4,7 @@ import { useCallback, useState } from "react";
 import type {
   ProductSearchRequest,
   SavedProductSearchRequest,
-} from "@/features/product-search-requests/types/product-search-request";
+} from "@/features/product-search-requests/types/productSearchRequest";
 
 // In-memory store for saved search requests during MVP 1 UI work. State resets on reload;
 // durable persistence arrives with the database in Feature 1.4.

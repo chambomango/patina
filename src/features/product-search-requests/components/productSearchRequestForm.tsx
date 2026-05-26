@@ -20,7 +20,7 @@ import type {
   BuyingOption,
   ProductCondition,
   ProductSearchRequest,
-} from "@/features/product-search-requests/types/product-search-request";
+} from "@/features/product-search-requests/types/productSearchRequest";
 
 // Sentinel for the "no filter" option
 const ANY = "any";

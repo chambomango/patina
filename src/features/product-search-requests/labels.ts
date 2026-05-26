@@ -5,7 +5,7 @@
 import type {
   BuyingOption,
   ProductCondition,
-} from "@/features/product-search-requests/types/product-search-request";
+} from "@/features/product-search-requests/types/productSearchRequest";
 
 export const CONDITION_LABELS: Record<ProductCondition, string> = {
   new: "New",

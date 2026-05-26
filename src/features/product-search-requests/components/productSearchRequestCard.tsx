@@ -11,7 +11,7 @@ import {
   BUYING_OPTION_LABELS,
   CONDITION_LABELS,
 } from "@/features/product-search-requests/labels";
-import type { SavedProductSearchRequest } from "@/features/product-search-requests/types/product-search-request";
+import type { SavedProductSearchRequest } from "@/features/product-search-requests/types/productSearchRequest";
 
 type ProductSearchRequestCardProps = {
   request: SavedProductSearchRequest;

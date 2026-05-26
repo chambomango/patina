@@ -3,19 +3,21 @@
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { ProductSearchRequestCard } from "@/features/product-search-requests/components/product-search-request-card";
-import { ProductSearchRequestDialog } from "@/features/product-search-requests/components/product-search-request-dialog";
-import { useProductSearchRequests } from "@/features/product-search-requests/hooks/use-product-search-requests";
+import { ProductSearchRequestCard } from "@/features/product-search-requests/components/productSearchRequestCard";
+import { ProductSearchRequestDialog } from "@/features/product-search-requests/components/productSearchRequestDialog";
+import { useProductSearchRequests } from "@/features/product-search-requests/hooks/useProductSearchRequests";
 import type {
   ProductSearchRequest,
   SavedProductSearchRequest,
-} from "@/features/product-search-requests/types/product-search-request";
+} from "@/features/product-search-requests/types/productSearchRequest";
 
 export function ProductSearchRequestManager() {
   const { requests, createRequest, updateRequest, deleteRequest } =
     useProductSearchRequests();
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editing, setEditing] = useState<SavedProductSearchRequest | null>(null);
+  const [editing, setEditing] = useState<SavedProductSearchRequest | null>(
+    null,
+  );
 
   function openCreate() {
     setEditing(null);

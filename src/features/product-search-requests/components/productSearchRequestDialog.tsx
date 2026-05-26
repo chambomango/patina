@@ -7,8 +7,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ProductSearchRequestForm } from "@/features/product-search-requests/components/product-search-request-form";
-import type { ProductSearchRequest } from "@/features/product-search-requests/types/product-search-request";
+import { ProductSearchRequestForm } from "@/features/product-search-requests/components/productSearchRequestForm";
+import type { ProductSearchRequest } from "@/features/product-search-requests/types/productSearchRequest";
 
 type ProductSearchRequestDialogProps = {
   open: boolean;
