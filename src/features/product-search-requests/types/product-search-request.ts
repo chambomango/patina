@@ -15,3 +15,9 @@ export interface ProductSearchRequest {
   condition?: ProductCondition;
   buyingOption?: BuyingOption;
 }
+
+// A ProductSearchRequest with a stable client-side id for list rendering and edit/delete.
+// A durable, DB-assigned id arrives with persistence in Feature 1.4.
+export interface SavedProductSearchRequest extends ProductSearchRequest {
+  id: string;
+}
