@@ -323,7 +323,7 @@ General overview of the Epics and their statuses.
 
 **Outcome**: Let the user create, edit, and delete reusable Product search requests that can later be translated into eBay Browse API searches.
 
-**Status**: TODO
+**Status**: DONE
 
 **Done when**:
 
