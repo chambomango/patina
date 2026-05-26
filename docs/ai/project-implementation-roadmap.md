@@ -316,6 +316,10 @@ General overview of the Epics and their statuses.
 - Do not use mock Product data as the primary Product source. Empty states are acceptable until eBay collection and DB persistence exist. The temporary seed Products from Task 1.2.1a may be rendered during development as non-primary preview content.
 - Do not over-polish visual design before a design system is supplied.
 - Utilitarian does not mean desktop-only or visually careless; the first UI should still be usable and intentional across viewport sizes.
+- Route split (decided with user): `/` is the dashboard — a Product results area plus a run-trigger entry; `/search-requests` is kept as the full request editor/detail view and the future home for scheduling (MVP 2). Do not remove `/search-requests`.
+- In this Task the run trigger on `/` is only an entry point (a button, allowed to be a disabled / "not wired yet" placeholder). The responsive run modal and execution belong to Task 1.2.3.
+- Light/dark uses `next-themes` (user installs it) with a ThemeProvider in the root layout and a theme toggle in the dashboard header; the shadcn token foundation already exists in `globals.css`.
+- This Task is the static shell only: no run execution, no request data sharing, no collection.
 
 ---
 
@@ -349,12 +353,14 @@ General overview of the Epics and their statuses.
 
 #### Task 1.2.3 — Build run-one and run-all Product search request execution UI
 
-**Outcome**: Add UI controls that let the user execute a single Product search request or all Product search requests.
+**Outcome**: Add UI controls that let the user execute a single Product search request or all Product search requests, launched from a responsive run modal on the dashboard.
 
 **Status**: TODO
 
 **Done when**:
 
+- [ ] The dashboard (`/`) launches a responsive run modal that lists the saved Product search requests to select (mobile uses a mobile-appropriate presentation such as a full-height sheet).
+- [ ] The modal supports running selected requests and a quick "Run all".
 - [ ] Each Product search request has an individual run action.
 - [ ] Dashboard has a run-all action.
 - [ ] UI shows pending/running state for individual request execution.
@@ -372,6 +378,9 @@ General overview of the Epics and their statuses.
 
 - Do not add scheduler behavior in MVP 1.
 - Do not fake successful eBay results. The real collection path is added in Feature 1.3.
+- The run modal reads the saved Product search requests. Until requests are DB-backed (Task 1.4.6), use the simplest shared mechanism that is easy to remove; prefer DB reads once available over a long-lived client store.
+- MVP 1 scope: runs are synchronous and manual and do not need to survive navigation. Do NOT build a background or persistent run-status widget in MVP 1.
+- MVP 2 UI evolution (explicit — see Feature 2.2): the run modal should be able to minimize into a persistent, app-wide run-status toast/widget that survives navigation; clicking it reopens a per-request status panel (queued / running / done / failed); as background or scheduled searches finish, the dashboard fills in with newly saved Products in near-real-time. This requires the MVP 2 scheduler/worker plus persistence and is out of scope for MVP 1.
 
 ---
 
@@ -556,6 +565,7 @@ General overview of the Epics and their statuses.
 - [ ] Collected Products are inserted or updated.
 - [ ] Dedup prevents repeated Products from reappearing as new.
 - [ ] Dashboard reads Products from DB.
+- [ ] Product search requests are persisted and read as server data (Task 1.4.6).
 
 **Dependencies**:
 
@@ -700,6 +710,34 @@ General overview of the Epics and their statuses.
 
 - Run-all is still manually triggered in MVP 1.
 - Do not add scheduled collection here.
+- After run-all completes, the dashboard refetches/revalidates to show newly saved Products (MVP 1 = refresh once on completion). Incremental "fill in as each search finishes" is the MVP 2 background experience (see Feature 2.2), not MVP 1.
+
+---
+
+#### Task 1.4.6 — Persist ProductSearchRequest records via Drizzle and read them as server data
+
+**Outcome**: Store reusable Product search requests in SQLite via Drizzle so the dashboard run modal and the `/search-requests` editor share one source of truth, replacing the temporary in-memory request store from Feature 1.2.
+
+**Status**: TODO
+
+**Done when**:
+
+- [ ] Drizzle schema includes a Product search request table (name, query, min price, max price, condition, buying option, timestamps).
+- [ ] Create / edit / delete operate against the DB through server-side query helpers.
+- [ ] Both `/` (run modal) and `/search-requests` read requests as server data; the in-memory client store from Task 1.2.2 is removed.
+- [ ] No global client store remains for request data.
+
+**Likely areas**:
+
+- `src/lib/db/`
+- `src/features/product-search-requests/server/`
+- `src/features/product-search-requests/components/`
+
+**Notes**:
+
+- Closes the gap where Feature 1.4 originally persisted only Products; the master plan stores search requests in the DB as well.
+- Reuses the Drizzle setup from Task 1.4.1.
+- The Feature 1.2 in-memory request state is intentionally kept simple and easy to delete because this Task replaces it.
 
 ---
 
@@ -925,6 +963,7 @@ General overview of the Epics and their statuses.
 
 - Define done checks, likely areas, and task-specific notes when this work is close to implementation.
 - Do not introduce a managed queue unless the roadmap is updated.
+- Target run UX (carried from the MVP 1 run modal, Task 1.2.3): the run modal can minimize into a persistent, app-wide run-status toast/widget that survives client-side navigation. Clicking it reopens a panel showing per-request status (queued / running / done / failed). As scheduled or background runs complete, the dashboard fills in with newly saved Products in near-real-time (revalidation, polling, or streaming). This needs the scheduler/worker from this Feature plus persistence (Feature 1.4); it is intentionally deferred out of MVP 1, where runs are synchronous and manual.
 
 ---
 
