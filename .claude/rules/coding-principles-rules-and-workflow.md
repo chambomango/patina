@@ -287,6 +287,20 @@ Short names are allowed for common, localized patterns:
 
 If a variable lives longer than a few lines, give it a descriptive name.
 
+### File Naming
+
+Use camelCase for source file names we author.
+
+- TypeScript and React source files use camelCase. Single-word names stay lowercase
+- Component files use camelCase too; the exported component keeps its PascalCase name
+
+Exceptions — keep these as-is:
+
+- Framework-reserved files use the name the framework requires (Next.js `page.tsx`, `layout.tsx`, `route.ts`, `not-found.tsx`, `globals.css`, etc.).
+- Generated or third-party files keep their generator's convention (shadcn/ui files in `src/components/ui/` stay kebab-case, e.g. `dropdown-menu.tsx`).
+
+This rule governs file names. Directory names follow the documented project structure (kebab-case feature folders such as `product-search-requests/`).
+
 ## Application Architecture and Organization
 
 ### Feature-First Organization
