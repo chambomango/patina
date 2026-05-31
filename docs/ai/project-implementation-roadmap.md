@@ -126,12 +126,12 @@ src/
 
 General overview of the Epics and their statuses.
 
-| Epic ID | Epic / MVP                                | Goal                                                                                                                 | Status      |
-| ------- | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ----------- |
-| Epic 1  | MVP 1: Local eBay Product Dashboard       | Build local Next.js UI, collect eBay Products, save them to DB, and triage them in the dashboard                     | Not Started |
+| Epic ID | Epic / MVP                                          | Goal                                                                                                                                                         | Status      |
+| ------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------- |
+| Epic 1  | MVP 1: Local eBay Product Dashboard                 | Build local Next.js UI, collect eBay Products, save them to DB, and triage them in the dashboard                                                             | Not Started |
 | Epic 2  | MVP 2: Containerized Oracle/Tailscale Scheduled App | Containerize, host on Oracle behind Tailscale/VPN, persist SQLite in a Docker volume, add scheduled collection, scan health, and optional ntfy notifications | Later       |
-| Epic 3  | MVP 3: Craigslist Source Expansion        | Validate and add Craigslist as another Product source without rewriting the core app                                 | Later       |
-| Epic 4  | Later: Facebook External Adapter Boundary | Preserve a small boundary for a future external Facebook module without implementing Facebook collection now         | Deferred    |
+| Epic 3  | MVP 3: Craigslist Source Expansion                  | Validate and add Craigslist as another Product source without rewriting the core app                                                                         | Later       |
+| Epic 4  | Later: Facebook External Adapter Boundary           | Preserve a small boundary for a future external Facebook module without implementing Facebook collection now                                                 | Deferred    |
 
 ---
 
@@ -355,7 +355,7 @@ General overview of the Epics and their statuses.
 
 **Outcome**: Add UI controls that let the user execute a single Product search request or all Product search requests, launched from a responsive run modal on the dashboard.
 
-**Status**: TODO
+**Status**: DONE
 
 **Done when**:
 
@@ -388,7 +388,7 @@ General overview of the Epics and their statuses.
 
 **Outcome**: Display saved Products from the app's `Product` shape in reusable Product UI components.
 
-**Status**: TODO
+**Status**: DONE
 
 **Done when**:
 

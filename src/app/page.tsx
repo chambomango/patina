@@ -3,6 +3,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/themeToggle";
 import { ProductResults } from "@/features/products/components/productResults";
+import { seedProducts } from "@/features/products/seed/seedProducts";
+import { RunSearchesButton } from "@/features/product-search-requests/components/runSearchesButton";
 
 export default function DashboardPage() {
   return (
@@ -29,8 +31,7 @@ export default function DashboardPage() {
               </p>
             </div>
             <div className="flex items-center gap-2">
-              {/* Run execution is wired in Task 1.2.3; disabled placeholder for now. */}
-              <Button disabled>Run searches</Button>
+              <RunSearchesButton />
               <Button variant="outline" asChild>
                 <Link href="/search-requests">Manage searches</Link>
               </Button>
@@ -38,7 +39,8 @@ export default function DashboardPage() {
           </section>
 
           <section>
-            <ProductResults products={[]} />
+            {/* Seed Products from Task 1.2.1a (preview only; removed when DB-backed Products land in Task 1.4.4). */}
+            <ProductResults products={seedProducts} />
           </section>
         </div>
       </main>

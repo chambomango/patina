@@ -1,3 +1,7 @@
+"use client";
+
+import { useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,7 +15,10 @@ import {
   BUYING_OPTION_LABELS,
   CONDITION_LABELS,
 } from "@/features/product-search-requests/labels";
+import { runProductSearchRequest } from "@/features/product-search-requests/runtime/runRequest";
 import type { SavedProductSearchRequest } from "@/features/product-search-requests/types/productSearchRequest";
+
+type RunStatus = "idle" | "running" | "completed" | "failed";
 
 type ProductSearchRequestCardProps = {
   request: SavedProductSearchRequest;
@@ -23,15 +30,15 @@ function describeFilters(
   request: SavedProductSearchRequest,
 ): { label: string; value: string }[] {
   const filters: { label: string; value: string }[] = [];
-  if (request.minPrice !== undefined) {
+  if (request.minPrice !== undefined)
     filters.push({ label: "Min", value: `$${request.minPrice}` });
-  }
-  if (request.maxPrice !== undefined) {
+  if (request.maxPrice !== undefined)
     filters.push({ label: "Max", value: `$${request.maxPrice}` });
-  }
-  if (request.condition) {
-    filters.push({ label: "Condition", value: CONDITION_LABELS[request.condition] });
-  }
+  if (request.condition)
+    filters.push({
+      label: "Condition",
+      value: CONDITION_LABELS[request.condition],
+    });
   if (request.buyingOption) {
     filters.push({
       label: "Buying",
@@ -47,6 +54,17 @@ export function ProductSearchRequestCard({
   onDelete,
 }: ProductSearchRequestCardProps) {
   const filters = describeFilters(request);
+  const [runStatus, setRunStatus] = useState<RunStatus>("idle");
+
+  async function handleRun() {
+    setRunStatus("running");
+    try {
+      const result = await runProductSearchRequest();
+      setRunStatus(result.status === "failed" ? "failed" : "completed");
+    } catch {
+      setRunStatus("failed");
+    }
+  }
 
   return (
     <Card>
@@ -68,18 +86,41 @@ export function ProductSearchRequestCard({
           <p className="text-muted-foreground">No filters</p>
         )}
       </CardContent>
-      <CardFooter className="justify-end gap-2">
-        <Button variant="outline" size="sm" onClick={() => onEdit(request)}>
-          Edit
-        </Button>
-        <Button
-          variant="destructive"
-          size="sm"
-          onClick={() => onDelete(request.id)}
-        >
-          Delete
-        </Button>
+      <CardFooter className="flex-wrap justify-between gap-2">
+        <RunStatusText status={runStatus} />
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRun}
+            disabled={runStatus === "running"}
+          >
+            {runStatus === "running" ? "Running…" : "Run"}
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => onEdit(request)}>
+            Edit
+          </Button>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => onDelete(request.id)}
+          >
+            Delete
+          </Button>
+        </div>
       </CardFooter>
     </Card>
   );
+}
+
+function RunStatusText({ status }: { status: RunStatus }) {
+  if (status === "completed") {
+    return (
+      <span className="text-xs text-muted-foreground">Done (no products)</span>
+    );
+  }
+  if (status === "failed") {
+    return <span className="text-xs text-destructive">Failed</span>;
+  }
+  return <span aria-hidden />;
 }

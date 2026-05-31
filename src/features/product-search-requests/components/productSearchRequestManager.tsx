@@ -39,13 +39,8 @@ export function ProductSearchRequestManager() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between gap-4">
-        <p className="text-sm text-muted-foreground">
-          {requests.length === 0
-            ? "No search requests yet."
-            : `${requests.length} saved search request${requests.length === 1 ? "" : "s"}.`}
-        </p>
-        <Button onClick={openCreate}>New search request</Button>
+      <div className="flex items-center justify-end gap-4">
+        <Button onClick={openCreate}>New</Button>
       </div>
 
       {requests.length === 0 ? (

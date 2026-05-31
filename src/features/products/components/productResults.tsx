@@ -1,3 +1,4 @@
+import { ProductCard } from "@/features/products/components/productCard";
 import type { Product } from "@/features/products/types/product";
 
 type ProductResultsProps = {
@@ -16,10 +17,13 @@ export function ProductResults({ products }: ProductResultsProps) {
     );
   }
 
-  // Product cards arrive in Task 1.2.4; until then, summarize what would render.
   return (
-    <p className="text-sm text-muted-foreground">
-      {products.length} product{products.length === 1 ? "" : "s"} collected.
-    </p>
+    <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      {products.map((product) => (
+        <li key={product.sourceProductId ?? product.sourceUrl}>
+          <ProductCard product={product} />
+        </li>
+      ))}
+    </ul>
   );
 }
