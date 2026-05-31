@@ -289,7 +289,7 @@ General overview of the Epics and their statuses.
 
 **Outcome**: Create the responsive dashboard structure for Product discovery and triage without depending on live eBay data yet.
 
-**Status**: TODO
+**Status**: DONE
 
 **Done when**:
 
