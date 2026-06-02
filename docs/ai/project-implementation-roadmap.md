@@ -1,12 +1,12 @@
 # Patina — Project Implementation Roadmap
 
-> Implementation roadmap for the finalized product plan in `./master-project-plan.md`.
+> Implementation roadmap for the Patina dashboard/control-plane repo.
 
 ## How to Use This Roadmap
 
-Use this roadmap for writing code in the specified tasks in order and light tracking of the code written. Figure out what to code from whats written for each task and examine the broader context from our documentation and linked rules and project files.
+Use this roadmap for writing code in the specified tasks in order and light tracking of the code written. Figure out what to code from what is written for each task and examine the broader context from the documentation and linked rules/project files.
 
-The Master Project Plan defines what the product is. This roadmap defines the build sequence for turning that plan into working software.
+The Master Project Plan defines what the product is. This roadmap defines the build sequence for turning the Patina dashboard repo into working software.
 
 If you have to update this roadmap, assume that another AI coding agent will execute it later without access to the planning conversation. Preserve execution-critical decisions directly in the roadmap.
 
@@ -14,35 +14,45 @@ If you have to update this roadmap, assume that another AI coding agent will exe
 
 Use these documents together:
 
-| Source Document                                               | Purpose                                                                                         |
-| ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `./master-project-plan.md`                                    | Big picture project plan. Scoped and goes over architecture and MVPs in some more detail        |
-| `../../.claude/rules/coding-principles-rules-and-workflow.md` | Principles, rules, and workflow to abide by                                                     |
-| `./project-implementation-roadmap.md`                         | Implementation guide for project, what code to write, tech stack to implement, tasks to execute |
+| Source Document | Purpose |
+| --------------- | ------- |
+| `./master-project-plan.md` | Big picture project plan. Scoped and goes over architecture and MVPs in more detail |
+| `../../.claude/rules/coding-principles-rules-and-workflow.md` | Principles, rules, and workflow to abide by |
+| `./project-implementation-roadmap.md` | Implementation guide for project, what code to write, tech stack to implement, tasks to execute |
 
-If this roadmap conflicts with the Master Project Plan, pause and call out the conflict then ask how to move forward and if the plan should change.
+If this roadmap conflicts with the Master Project Plan, pause and call out the conflict, then ask how to move forward and whether the plan should change.
 
 If this roadmap appears to conflict with the coding rules, follow the coding rules for implementation behavior and update this roadmap if the project-specific plan is wrong.
 
+### Architecture Pivot Note
+
+After Feature 1.2, the project changed from a single Next.js app that directly collected results from a source into a split architecture:
+
+- `patina` remains the dashboard/control-plane UI and is source-agnostic.
+- `patina-collector` will be a separate local service that executes source collection. The dashboard knows nothing about its sources or methods.
+- Neon Postgres replaces SQLite as the shared always-available database.
+- `Run now` creates database-backed `CollectionRun` requests instead of directly executing source collection in the dashboard app.
+- The dashboard no longer contains any source-specific collection path.
+
+Completed UI foundation work from Feature 1.1 and Feature 1.2 is preserved. The unstarted in-dashboard collection path has been removed from the active Patina dashboard roadmap.
+
 ### How to Implement This Roadmap
 
-### Implementing Tasks Rules
+#### Implementing Tasks Rules
 
 - Work on the active assigned task(s) I ask you to and complete only the work needed for the task(s) outcome; no scope creep. Do not add work belonging to later Tasks, Features, or Epics.
-- Follow coding rules and principles defined in `../../.claude/rules/coding-principles-rules-and-workflow.md`
-- If you are considering how to code a task and realize there is ambiguity in implementation that would effect fundamentally how the project is written or expanded upon in the future, pause and we will address it before moving forward
+- Follow coding rules and principles defined in `../../.claude/rules/coding-principles-rules-and-workflow.md`.
+- If you are considering how to code a task and realize there is ambiguity in implementation that would affect fundamentally how the project is written or expanded upon in the future, pause and we will address it before moving forward.
 - Update task status after each completed Task.
 - If implementation reveals an architecture issue, stop and ask how to move forward and we will address this roadmap before coding further.
 - If you're in agent mode and I ask you to make a plan for a task before coding then create the plan file at `../implementation-plans`.
-  - plans should be brief (should not become a second roadmap). Each one should include:
+  - plans should be brief and should not become a second roadmap. Each one should include:
     1. **Plain-English summary** — what you will code
     2. **Files to add or modify** — for each file: action, create / modify / delete
 
-### I will run certain commands rule
+#### I will run certain commands rule
 
-For commands that scaffold, initialize, install, migrate, or generate files, the coding agent should not run them automatically unless explicitly told to. Instead I, the user, will run them
-
-It's easier for me because I can look in git and see see which files you wrote and which were generated by a command such as `npx create-next-app` and commit them before you make more changes and i end up reviewing a standard generated file
+For commands that scaffold, initialize, install, migrate, or generate files, the coding agent should not run them automatically unless explicitly told to. Instead I, the user, will run them.
 
 Examples include:
 
@@ -62,7 +72,7 @@ When one of these commands is needed:
 
 ### Task Detail Levels
 
-If you are modifying/updating a task
+If you are modifying/updating a task:
 
 - Current Task: include enough detail to implement and verify the work.
 - Current Feature: include clear sequencing, dependencies, and done checks.
@@ -75,9 +85,10 @@ If you are modifying/updating a task
 
 Link to architecture of Master Project Plan: `./master-project-plan.md` → `### 4. Preliminary Architectural Components`
 
-- Tech **Stack**: Next.js + TypeScript + Tailwind + shadcn/ui + eBay Buy Browse API + SQLite + Drizzle ORM + drizzle-kit. MVP 2 adds Docker/containerization so anyone could clone this repo and reproduce setup more easily, Oracle Cloud Always Free VM hosting behind Tailscale/VPN, SQLite file persistence through a Docker volume, scheduled collection inside the app/container runtime, scan health, and optional ntfy notifications. MVP 3 validates and adds Craigslist if an acceptable source path is available. Facebook is deferred as a possible external module.
+- **Patina dashboard stack**: Next.js + TypeScript + Tailwind + shadcn/ui + Drizzle ORM + Neon Postgres + drizzle-kit.
+- **Collector stack**: Separate TypeScript/Node project, Drizzle ORM + Neon Postgres, source adapters, polling/claiming `CollectionRun` records, Product upsert path. Collector work lives outside this Patina dashboard repo.
 - **UX / UI direction**: Use Tailwind + shadcn/ui with light/dark mode. Start utilitarian, but make the UI intentionally responsive: mobile should use mobile-appropriate cards/actions and desktop should use desktop-appropriate density, spacing, and layout. Do not force one viewport's layout pattern onto the other.
-- **File/folder structure**:
+- **Patina dashboard file/folder structure**:
 
 ```txt
 src/
@@ -94,14 +105,9 @@ src/
       server/
       types/
     collection-runs/
+      components/
       server/
       types/
-    sources/
-      ebay/
-        server/
-      craigslist/
-        server/
-      shared/
   lib/
     db/
     env/
@@ -109,16 +115,25 @@ src/
     formatting/
 ```
 
-- **Formatter / linter**: Prettier formatting on save (I will setup in VSCode)
-- **Test framework**: Add Vitest for pure TypeScript modules when Product normalization, filters, or dedup logic become important enough to protect. React Testing Library can be added later for critical UI behavior. Do not add browser E2E tests in MVP 1.
-- **Git commit message style**: I will handle git, you will not do any git commits or pushes unless i say
-- **Environment strategy**: MVP 1 runs locally. eBay credentials live in ignored local environment files. MVP 2 adds hosted env configuration for Docker on an Oracle Cloud Always Free VM behind Tailscale/VPN.
-- **Data flow**: A Product search is made manually from UI to Next.js (and later can be done via a scheduler as well) server boundary which sends the request to the eBay source module and gets the API data, maps it to eBay Browse API parameters, normalizes eBay results into `Product[]`, saves normalized Products to SQLite through Drizzle ORM, and exposes saved Products to the dashboard.
-- **State management**: Use server data for persisted Products and search requests, local component state for forms and transient UI, and URL state for dashboard filters. Can use state for search requests as well. Do not add a global client store unless the roadmap is updated.
-- **External integrations**: eBay Buy Browse API first. Craigslist later only after source path validation. Facebook is deferred.
-- **Testing strategy**: Prioritize pure unit tests for eBay normalization, Product dedup, filters, and Product search request mapping. Do not depend on live eBay in automated tests; use mocked responses if tests are added.
-- **Security / privacy rules**: Do not commit eBay credentials, app passwords, API tokens, notification topics, or database files containing real Product history. Keep external credentials server-side only. Do not expose hosted access publicly in MVP 2.
-- **Deferred architecture**: Separate backend app, public multi-user auth, managed queues, managed secret stores, Docker in MVP 1, scheduler in MVP 1, WebSockets, PWA/native app, ML/scoring, price history, purchase automation, seller messaging, Craigslist implementation before validation, and Facebook collection.
+- **Do not add this to Patina**:
+
+```txt
+src/features/sources/
+  <any-source>/
+```
+
+Source execution modules of any kind belong in `patina-collector`, not in the dashboard repo. The dashboard never names or special-cases specific sources.
+
+- **Formatter / linter**: Prettier formatting on save (user will set up in VSCode).
+- **Test framework**: Add Vitest for pure TypeScript modules when Product filters, dedup helpers, or run-status helpers become important enough to protect. React Testing Library can be added later for critical UI behavior. Do not add browser E2E tests in MVP 1.
+- **Git commit message style**: User handles git; AI will not do git commits or pushes unless explicitly told.
+- **Environment strategy**: MVP 1 runs Patina locally while connecting to Neon Postgres. Neon connection strings and secrets live in ignored local environment files. Hosted env configuration belongs later.
+- **Data flow**: User creates/edits Product search requests in Patina → Patina writes them to Neon. User clicks `Run now` or `Run all` → Patina creates `CollectionRun` records in Neon with status `requested`. Collector later polls Neon, claims requested runs, executes source adapters, writes normalized Products, and updates run status. Patina reads Products, requests, and run status from Neon.
+- **State management**: Use server data for persisted Products, search requests, and collection runs; local component state for forms and transient UI; URL state for dashboard filters where useful. Do not add a global client store unless the roadmap is updated.
+- **External integrations**: None inside the Patina dashboard. The dashboard is source-agnostic and has no knowledge of which sources exist or how Products are collected; all source access lives in `patina-collector`.
+- **Testing strategy**: Prioritize pure unit tests for Product filters, Product dedup helpers, CollectionRun status helpers, and Product search request validation. Do not depend on live external source APIs in automated tests.
+- **Security / privacy rules**: Do not commit Neon connection strings, API tokens, notification topics, app passwords, or database exports containing real Product history. Keep DB credentials server-side only. Do not expose hosted dashboard access publicly without an explicit hosting/auth decision.
+- **Deferred architecture**: Public multi-user auth, managed queues, managed secret stores, Docker in MVP 1, scheduler in Patina, any source adapter or source collection logic in Patina, WebSockets, PWA/native app, ML/scoring, price history, purchase automation, seller messaging, and any browser automation (all collection lives in `patina-collector`).
 
 ---
 
@@ -126,31 +141,34 @@ src/
 
 General overview of the Epics and their statuses.
 
-| Epic ID | Epic / MVP                                          | Goal                                                                                                                                                         | Status      |
-| ------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------- |
-| Epic 1  | MVP 1: Local eBay Product Dashboard                 | Build local Next.js UI, collect eBay Products, save them to DB, and triage them in the dashboard                                                             | Not Started |
-| Epic 2  | MVP 2: Containerized Oracle/Tailscale Scheduled App | Containerize, host on Oracle behind Tailscale/VPN, persist SQLite in a Docker volume, add scheduled collection, scan health, and optional ntfy notifications | Later       |
-| Epic 3  | MVP 3: Craigslist Source Expansion                  | Validate and add Craigslist as another Product source without rewriting the core app                                                                         | Later       |
-| Epic 4  | Later: Facebook External Adapter Boundary           | Preserve a small boundary for a future external Facebook module without implementing Facebook collection now                                                 | Deferred    |
+| Epic ID | Epic / MVP | Goal | Status |
+| ------- | ---------- | ---- | ------ |
+| Epic 1 | MVP 1: Patina Dashboard + Neon Control Plane | Preserve completed dashboard UI, move dashboard data to Neon, create run-now CollectionRun requests, and triage Products from the shared DB | In Progress |
+| Epic 2 | MVP 1.5: Collector Integration Contract | Coordinate with the separate collector through shared DB records without putting source execution in Patina | Later |
+| Epic 3 | MVP 2: Hosted/Remote Dashboard Access | Make Patina reachable from personal devices after the local Neon-backed workflow is useful | Later |
+| Epic 4 | Later: Additional Source Adapter Support | Keep dashboard source-agnostic while source adapters live in `patina-collector` | Deferred |
 
 ---
 
-## Epic 1 — MVP 1: Local eBay Product Dashboard
+## Epic 1 — MVP 1: Patina Dashboard + Neon Control Plane
 
-**Epic Goal**: Build a local Next.js app that lets the user define eBay-backed Product search requests, run all or individual requests, normalize eBay Browse API results into `Product`, save Products to the database, and triage saved Products in a utilitarian responsive dashboard.
+**Epic Goal**: Build and preserve the local Next.js dashboard UI, move core app data to Neon Postgres, make `Run now` create database-backed collection requests for the collector, and let the user triage saved Products in a utilitarian responsive dashboard.
 
 **Done when**:
 
-- [ ] User has run the Next.js initialization and Tailwind/shadcn setup commands.
-- [ ] AI has inspected the generated app structure before editing.
-- [ ] `Product` and `ProductSearchRequest` types exist and are source-agnostic.
-- [ ] User can create, edit, delete, run one, and run all Product search requests.
-- [ ] eBay Browse API results are normalized into `Product[]`.
-- [ ] Normalized Products are saved to the database without storing raw source JSON.
-- [ ] Dashboard displays saved Products from the database.
+- [x] User has run the Next.js initialization and Tailwind/shadcn setup commands.
+- [x] AI has inspected the generated app structure before editing.
+- [x] `Product` and `ProductSearchRequest` types exist and are source-agnostic.
+- [x] Dashboard shell, Product search request editor, run modal, and Product card/list UI exist.
+- [ ] Neon Postgres and Drizzle are configured.
+- [ ] Product search requests are persisted in Neon.
+- [ ] Product, ProductSearchRequest, and CollectionRun tables exist.
+- [ ] `Run now` creates `CollectionRun` records with status `requested`.
+- [ ] `Run all` creates `CollectionRun` records for the selected/all Product search requests.
+- [ ] Dashboard displays saved Products from Neon.
 - [ ] User can mark Products as `new`, `interested`, or `rejected`.
 - [ ] Basic dashboard filters and collection history exist if needed for MVP usability.
-- [ ] No Docker, scheduler, hosted deployment, Craigslist, Facebook collection, notifications, or auth are added unless the roadmap is updated.
+- [ ] No source adapters, source collection logic, browser automation, Docker, scheduler, hosted deployment, notifications, or auth are added unless the roadmap is updated.
 
 ---
 
@@ -160,13 +178,15 @@ General overview of the Epics and their statuses.
 
 **Goal**: Let the user create the generated Next.js/Tailwind/shadcn base, then have AI inspect the generated structure and define the core Product types without running generator commands itself.
 
+**Status**: DONE
+
 **Done when**:
 
-- [ ] User has run the scaffold/setup commands.
-- [ ] AI has inspected generated files before editing.
-- [ ] Product-related feature folders/types are placed according to the generated app structure.
-- [ ] `Product` is defined as the app's normalized internal object.
-- [ ] `ProductSearchRequest` is defined as the app-level request shape used by UI and source modules.
+- [x] User has run the scaffold/setup commands.
+- [x] AI has inspected generated files before editing.
+- [x] Product-related feature folders/types are placed according to the generated app structure.
+- [x] `Product` is defined as the app's normalized internal object.
+- [x] `ProductSearchRequest` is defined as the app-level request shape used by UI and source modules.
 
 **Dependencies**:
 
@@ -182,11 +202,11 @@ General overview of the Epics and their statuses.
 
 **Done when**:
 
-- [ ] AI provides the exact Next.js initialization command for the user to run.
-- [ ] AI provides the exact Tailwind/shadcn setup commands needed for the chosen Next.js setup, if they are not included already.
-- [ ] User confirms the commands completed.
-- [ ] Generated project files exist before AI edits application code.
-- [ ] AI does not run scaffold, install, or generator commands unless explicitly told.
+- [x] AI provides the exact Next.js initialization command for the user to run.
+- [x] AI provides the exact Tailwind/shadcn setup commands needed for the chosen Next.js setup, if they are not included already.
+- [x] User confirms the commands completed.
+- [x] Generated project files exist before AI edits application code.
+- [x] AI does not run scaffold, install, or generator commands unless explicitly told.
 
 **Likely areas**:
 
@@ -199,7 +219,7 @@ General overview of the Epics and their statuses.
 **Notes**:
 
 - Preserve this task wording because it carries execution instructions: the user runs the generated setup commands, not AI.
-- Do not add Product logic, eBay logic, DB logic, Docker, scheduler, or hosted deployment in this Task.
+- Do not add Product logic, DB logic, Docker, scheduler, source adapters, or hosted deployment in this Task.
 - After the user reports completion, AI should inspect the generated structure before making edits.
 
 ---
@@ -212,12 +232,12 @@ General overview of the Epics and their statuses.
 
 **Done when**:
 
-- [ ] AI inspects generated app files and adapts paths to the actual structure.
-- [ ] `Product` type exists.
-- [ ] `ProductSearchRequest` type exists.
-- [ ] `Product` includes source identity, source Product ID when available, source URL, title, price/currency, image, condition, location, timestamps, and review state where appropriate.
-- [ ] `ProductSearchRequest` includes initial search controls for eBay-backed requests, such as name, query, min price, max price, condition, and buying option.
-- [ ] UI-facing types do not import raw eBay response types.
+- [x] AI inspects generated app files and adapts paths to the actual structure.
+- [x] `Product` type exists.
+- [x] `ProductSearchRequest` type exists.
+- [x] `Product` includes source identity, source Product ID when available, source URL, title, price/currency, image, condition, location, timestamps, and review state where appropriate.
+- [x] `ProductSearchRequest` includes initial search controls such as name, query, min price, max price, condition, and buying option.
+- [x] UI-facing types do not import raw external source response types.
 
 **Likely areas**:
 
@@ -228,6 +248,7 @@ General overview of the Epics and their statuses.
 **Notes**:
 
 - Store normalized Products only; do not plan for raw source JSON storage.
+- ProductSearchRequest should remain source-agnostic enough that the collector can interpret it for each supported source.
 - If the generated app structure differs from this roadmap, adapt to the generated structure and update the roadmap only if the difference affects architecture or future work.
 
 ---
@@ -236,19 +257,21 @@ General overview of the Epics and their statuses.
 
 #### Overview
 
-**Goal**: Build the first local UI for managing Product search requests, executing one or all requests, and viewing saved Products. The UI should be utilitarian, Tailwind/shadcn-based, light/dark capable, and intentionally responsive so mobile and desktop each feel appropriate instead of one layout being awkwardly stretched across all screen sizes.
+**Goal**: Build the first local UI for managing Product search requests, requesting one or all runs, and viewing saved Products. The UI should be utilitarian, Tailwind/shadcn-based, light/dark capable, and intentionally responsive so mobile and desktop each feel appropriate.
+
+**Status**: DONE
 
 **Done when**:
 
-- [ ] Dashboard has a Product results area.
-- [ ] Dashboard has a Product search request management area.
-- [ ] User can create, edit, delete, run one, and run all Product search requests.
-- [ ] Product cards/list components depend on `Product`, not eBay-specific types.
-- [ ] Mobile layout uses mobile-appropriate presentation and actions.
-- [ ] Desktop layout uses desktop-appropriate space, density, and structure.
-- [ ] Light and dark mode are supported through the Tailwind/shadcn foundation.
-- [ ] Empty/loading/error states exist for the local workflow.
-- [ ] No mock Product data is used as the primary data path.
+- [x] Dashboard has a Product results area.
+- [x] Dashboard has a Product search request management area.
+- [x] User can create, edit, delete, run one, and run all Product search requests in the UI shell.
+- [x] Product cards/list components depend on `Product`, not external source-specific types.
+- [x] Mobile layout uses mobile-appropriate presentation and actions.
+- [x] Desktop layout uses desktop-appropriate space, density, and structure.
+- [x] Light and dark mode are supported through the Tailwind/shadcn foundation.
+- [x] Empty/loading/error states exist for the local workflow.
+- [x] No mock Product data is used as the primary long-term data path.
 
 **Dependencies**:
 
@@ -258,50 +281,48 @@ General overview of the Epics and their statuses.
 
 #### Task 1.2.1a — Add temporary seed Products for dashboard preview
 
-**Outcome**: Provide a small, clearly temporary set of normalized sample Products so the dashboard renders visible content during Feature 1.2 UI work, before eBay collection (Feature 1.3) and DB persistence (Feature 1.4) exist.
-
-**Status**: DONE — seed module created; the "renders in dashboard" check is realized by Task 1.2.1 once the shell exists.
-
-**Done when**:
-
-- [ ] A small sample `Product[]` (about 5 items) exists as an isolated, clearly labeled dev-only module.
-- [ ] Sample Products conform to the `Product` type, with no extra fields and no raw source JSON.
-- [ ] Sample data covers varied cases: missing image, missing price, different review states, and long titles.
-- [ ] The dashboard can render the sample Products so the board is not empty during development.
-- [ ] Seed usage is isolated so it is trivial to remove or disable.
-- [ ] Seed data is not the primary data path and is removed/replaced when DB-backed Products land (Task 1.4.4).
-
-**Likely areas**:
-
-- `src/features/products/seed/` (or similar isolated fixtures module)
-- `src/features/products/types/`
-- `src/app/` dashboard route once it exists (Task 1.2.1)
-
-**Notes**:
-
-- Added after initial planning. It relaxes the "empty state only" approach for development convenience, but the master plan rule still holds: seed/mock data must not become the primary Product source.
-- Keep it tiny. Do not build a seeding framework or fake eBay responses.
-- Remove or replace seed usage when the dashboard reads Products from the DB (Task 1.4.4).
-
----
-
-#### Task 1.2.1 — Build utilitarian Product dashboard shell with Tailwind/shadcn
-
-**Outcome**: Create the responsive dashboard structure for Product discovery and triage without depending on live eBay data yet.
+**Outcome**: Provide a small, clearly temporary set of normalized sample Products so the dashboard renders visible content during Feature 1.2 UI work, before DB-backed Products exist.
 
 **Status**: DONE
 
 **Done when**:
 
-- [ ] Dashboard route renders a utilitarian layout.
-- [ ] Layout includes a Product search request area and a Product results area.
-- [ ] Layout works and looks intentional on mobile and desktop.
-- [ ] Mobile layout uses mobile-appropriate patterns such as stacked cards, touch-friendly actions, and readable spacing.
-- [ ] Desktop layout uses desktop-appropriate space, density, and structure.
-- [ ] Light and dark mode are supported through the Tailwind/shadcn theme foundation.
-- [ ] Empty state explains that no Products have been collected yet.
-- [ ] UI uses Tailwind/shadcn components where useful.
-- [ ] UI remains replaceable by a future user-supplied Claude Design system.
+- [x] A small sample `Product[]` exists as an isolated, clearly labeled dev-only module.
+- [x] Sample Products conform to the `Product` type, with no extra fields and no raw source JSON.
+- [x] Sample data covers varied cases such as missing image, missing price, different review states, and long titles.
+- [x] Seed usage is isolated so it is trivial to remove or disable.
+- [ ] Seed usage is removed/replaced when the dashboard reads Products from Neon.
+
+**Likely areas**:
+
+- `src/features/products/seed/` or similar isolated fixtures module
+- `src/features/products/types/`
+- `src/app/` dashboard route
+
+**Notes**:
+
+- Seed data is allowed only as temporary preview content.
+- Remove or replace seed usage when the dashboard reads Products from Neon in Feature 1.5.
+
+---
+
+#### Task 1.2.1 — Build utilitarian Product dashboard shell with Tailwind/shadcn
+
+**Outcome**: Create the responsive dashboard structure for Product discovery and triage without depending on live external source data yet.
+
+**Status**: DONE
+
+**Done when**:
+
+- [x] Dashboard route renders a utilitarian layout.
+- [x] Layout includes a Product search request area and a Product results area.
+- [x] Layout works and looks intentional on mobile and desktop.
+- [x] Mobile layout uses mobile-appropriate patterns such as stacked cards, touch-friendly actions, and readable spacing.
+- [x] Desktop layout uses desktop-appropriate space, density, and structure.
+- [x] Light and dark mode are supported through the Tailwind/shadcn theme foundation.
+- [x] Empty state explains that no Products have been collected yet.
+- [x] UI uses Tailwind/shadcn components where useful.
+- [x] UI remains replaceable by a future user-supplied Claude Design system.
 
 **Likely areas**:
 
@@ -312,31 +333,25 @@ General overview of the Epics and their statuses.
 
 **Notes**:
 
-- Do not create separate mobile and desktop component trees unless unavoidable.
-- Do not use mock Product data as the primary Product source. Empty states are acceptable until eBay collection and DB persistence exist. The temporary seed Products from Task 1.2.1a may be rendered during development as non-primary preview content.
-- Do not over-polish visual design before a design system is supplied.
-- Utilitarian does not mean desktop-only or visually careless; the first UI should still be usable and intentional across viewport sizes.
-- Route split (decided with user): `/` is the dashboard — a Product results area plus a run-trigger entry; `/search-requests` is kept as the full request editor/detail view and the future home for scheduling (MVP 2). Do not remove `/search-requests`.
-- In this Task the run trigger on `/` is only an entry point (a button, allowed to be a disabled / "not wired yet" placeholder). The responsive run modal and execution belong to Task 1.2.3.
-- Light/dark uses `next-themes` (user installs it) with a ThemeProvider in the root layout and a theme toggle in the dashboard header; the shadcn token foundation already exists in `globals.css`.
-- This Task is the static shell only: no run execution, no request data sharing, no collection.
+- Route split: `/` is the dashboard — a Product results area plus a run-trigger entry; `/search-requests` is the full request editor/detail view and future home for scheduling-related request settings.
+- This Task is the static shell only: no collector execution, no source collection, and no DB persistence.
 
 ---
 
-#### Task 1.2.2 — Build Product search request editor for reusable eBay-backed requests
+#### Task 1.2.2 — Build Product search request editor for reusable requests
 
-**Outcome**: Let the user create, edit, and delete reusable Product search requests that can later be translated into eBay Browse API searches.
+**Outcome**: Let the user create, edit, and delete reusable Product search requests in the UI shell.
 
 **Status**: DONE
 
 **Done when**:
 
-- [ ] User can create a Product search request.
-- [ ] User can edit an existing Product search request.
-- [ ] User can delete a Product search request.
-- [ ] Request fields include initial controls such as name, query, min price, max price, condition, and buying option.
-- [ ] Validation distinguishes required query/name data from optional filters.
-- [ ] UI names fields using app terms, not raw eBay API parameter names when that would be confusing.
+- [x] User can create a Product search request.
+- [x] User can edit an existing Product search request.
+- [x] User can delete a Product search request.
+- [x] Request fields include initial controls such as name, query, min price, max price, condition, and buying option.
+- [x] Validation distinguishes required query/name data from optional filters.
+- [x] UI names fields using app terms, not raw provider API parameter names when that would be confusing.
 
 **Likely areas**:
 
@@ -346,27 +361,27 @@ General overview of the Epics and their statuses.
 
 **Notes**:
 
-- This Task builds the user-facing request shape. The eBay module later maps `ProductSearchRequest` to eBay API parameters.
+- This Task built the user-facing request shape. Persistence is added in Feature 1.3.
 - Keep request fields useful but do not add per-source advanced builders yet.
 
 ---
 
 #### Task 1.2.3 — Build run-one and run-all Product search request execution UI
 
-**Outcome**: Add UI controls that let the user execute a single Product search request or all Product search requests, launched from a responsive run modal on the dashboard.
+**Outcome**: Add UI controls that let the user request a run for a single Product search request or all Product search requests, launched from a responsive run modal on the dashboard.
 
 **Status**: DONE
 
 **Done when**:
 
-- [ ] The dashboard (`/`) launches a responsive run modal that lists the saved Product search requests to select (mobile uses a mobile-appropriate presentation such as a full-height sheet).
-- [ ] The modal supports running selected requests and a quick "Run all".
-- [ ] Each Product search request has an individual run action.
-- [ ] Dashboard has a run-all action.
-- [ ] UI shows pending/running state for individual request execution.
-- [ ] UI shows pending/running state for run-all execution.
-- [ ] UI shows basic success/failure feedback without exposing secrets or raw API errors.
-- [ ] Until the server/eBay path exists, execution controls may be disabled or show "not wired yet" states rather than fake Products.
+- [x] The dashboard (`/`) launches a responsive run modal that lists saved Product search requests to select.
+- [x] The modal supports running selected requests and a quick `Run all` action.
+- [x] Each Product search request has an individual run action.
+- [x] Dashboard has a run-all action.
+- [x] UI shows pending/running state for individual request execution.
+- [x] UI shows pending/running state for run-all execution.
+- [x] UI shows basic success/failure feedback without exposing secrets or raw provider errors.
+- [x] Until the DB/collector path exists, execution controls may be disabled or show `not wired yet` states rather than fake Products.
 
 **Likely areas**:
 
@@ -376,11 +391,9 @@ General overview of the Epics and their statuses.
 
 **Notes**:
 
-- Do not add scheduler behavior in MVP 1.
-- Do not fake successful eBay results. The real collection path is added in Feature 1.3.
-- The run modal reads the saved Product search requests. Until requests are DB-backed (Task 1.4.6), use the simplest shared mechanism that is easy to remove; prefer DB reads once available over a long-lived client store.
-- MVP 1 scope: runs are synchronous and manual and do not need to survive navigation. Do NOT build a background or persistent run-status widget in MVP 1.
-- MVP 2 UI evolution (explicit — see Feature 2.2): the run modal should be able to minimize into a persistent, app-wide run-status toast/widget that survives navigation; clicking it reopens a per-request status panel (queued / running / done / failed); as background or scheduled searches finish, the dashboard fills in with newly saved Products in near-real-time. This requires the MVP 2 scheduler/worker plus persistence and is out of scope for MVP 1.
+- Do not add scheduler behavior in Patina MVP 1.
+- Do not fake successful external source results.
+- Feature 1.4 rewires these controls so they create `CollectionRun` records in Neon instead of directly executing collection.
 
 ---
 
@@ -392,14 +405,14 @@ General overview of the Epics and their statuses.
 
 **Done when**:
 
-- [ ] Product list component exists.
-- [ ] Product card or row component exists.
-- [ ] Product UI shows title, price/currency, image when available, source, condition, location when available, review state, and source URL.
-- [ ] Product results use a mobile-appropriate card/list presentation on small screens.
-- [ ] Product results use a desktop-appropriate table, grid, split view, or denser card layout on larger screens.
-- [ ] Review actions remain easy to use with touch and mouse.
-- [ ] Missing optional Product fields do not break the UI.
-- [ ] Product actions have clear placement for later `new`/`interested`/`rejected` review controls.
+- [x] Product list component exists.
+- [x] Product card or row component exists.
+- [x] Product UI shows title, price/currency, image when available, source, condition, location when available, review state, and source URL.
+- [x] Product results use a mobile-appropriate card/list presentation on small screens.
+- [x] Product results use a desktop-appropriate table, grid, split view, or denser card layout on larger screens.
+- [x] Review actions remain easy to use with touch and mouse.
+- [x] Missing optional Product fields do not break the UI.
+- [x] Product actions have clear placement for `new`/`interested`/`rejected` review controls.
 
 **Likely areas**:
 
@@ -408,164 +421,200 @@ General overview of the Epics and their statuses.
 
 **Notes**:
 
-- Components should depend on `Product`, not eBay response types.
-- Empty states are acceptable until DB-backed Products exist.
+- Components should depend on `Product`, not external source response types.
+- Feature 1.5 makes these components read DB-backed Products from Neon.
 
 ---
 
-### Feature 1.3 — eBay Browse API Product Collection
+### Feature 1.3 — Neon Postgres Schema and Dashboard Data Persistence
 
 #### Overview
 
-**Goal**: Add the server-side source module and collection flow that turns eBay Browse API results into normalized Products.
+**Goal**: Move Patina dashboard data from temporary/in-memory state to Neon Postgres using Drizzle ORM. This feature creates the shared DB foundation that both Patina and the collector will use.
+
+**Status**: TODO
 
 **Done when**:
 
-- [ ] eBay API credentials are read server-side only.
-- [ ] Product search collection has a Next.js server boundary.
-- [ ] eBay Browse API item summary search can run from the server side.
-- [ ] eBay results are normalized into `Product[]`.
-- [ ] UI does not call eBay directly or import eBay response types.
+- [ ] Drizzle + Neon/Postgres dependencies are installed by the user.
+- [ ] Patina has a server-only Neon/Postgres DB connection.
+- [ ] Product, ProductSearchRequest, and CollectionRun schema exists.
+- [ ] Product search requests are created/edited/deleted through server-side DB helpers.
+- [ ] Dashboard and run modal read Product search requests from DB.
+- [ ] Temporary in-memory/client request store from Feature 1.2 is removed.
+- [ ] No source adapters or external API collection are added in Patina.
 
 **Dependencies**:
 
-- Feature 1.1.
-- Feature 1.2 for the request UI shape.
+- Feature 1.2.
 
 ---
 
-#### Task 1.3.1 — Add Next.js server boundary for Product search collection
+#### Task 1.3.1 — User runs Drizzle + Neon/Postgres install command
 
-**Outcome**: Create the server-side entrypoint that the UI uses to request Product collection without calling source APIs directly.
+**Outcome**: Install the selected Drizzle + Neon/Postgres persistence stack through a user-run command.
 
 **Status**: TODO
 
 **Done when**:
 
-- [ ] Server-side collection entrypoint accepts `ProductSearchRequest` or a saved request ID.
-- [ ] Client/UI code does not call eBay directly.
-- [ ] Client/UI code does not import DB, env, or source module internals.
-- [ ] The server boundary can return a safe success/failure result.
-- [ ] The server boundary is compatible with run-one and run-all UI flows.
+- [ ] AI provides the exact install command for Drizzle ORM, drizzle-kit, and the selected Postgres/Neon driver.
+- [ ] User runs the install command and confirms it completed.
+- [ ] AI inspects the generated/updated files before configuring DB code.
+- [ ] AI does not run package installation commands unless explicitly told.
 
 **Likely areas**:
 
-- `src/app/actions.ts` or `src/app/api/products/collect/route.ts`
-- `src/features/products/server/`
-- `src/features/product-search-requests/server/`
-- `src/features/collection-runs/server/`
+- `package.json`
+- lockfile
 
 **Notes**:
 
-- Use Server Actions or Route Handlers based on the generated app structure and the UI flow. Do not add a separate backend app.
-- Route Handlers are acceptable if status/polling or a clearer HTTP boundary is useful.
-- Keep the boundary source-agnostic so eBay is not hardcoded into UI components.
+- Use Neon/Postgres from MVP 1 onward.
+- Do not install SQLite drivers.
+- Follow the User-Run Generated Commands rule.
 
 ---
 
-#### Task 1.3.2 — Add eBay Browse API module that maps ProductSearchRequest to Product[]
+#### Task 1.3.2 — Configure server-only Neon/Postgres connection and Drizzle setup
 
-**Outcome**: Add the eBay-specific server module that calls eBay Browse API item summary search and returns normalized app Products.
+**Outcome**: Add the DB connection module and Drizzle configuration for Neon/Postgres.
 
 **Status**: TODO
 
 **Done when**:
 
-- [ ] eBay credentials are read from server-only environment variables.
-- [ ] Missing credentials fail with a clear safe error.
-- [ ] OAuth client credentials/application token flow is supported if required for the chosen eBay endpoint.
-- [ ] eBay item summary search runs from the server side.
-- [ ] `ProductSearchRequest` fields are mapped to eBay Browse API parameters.
-- [ ] Raw eBay API response shapes stay inside the eBay source module.
-- [ ] eBay module returns `Product[]`.
+- [ ] Server-only DB client exists.
+- [ ] Neon/Postgres connection string is read from ignored environment variables.
+- [ ] Missing DB env fails with a clear safe error.
+- [ ] Drizzle config points at the correct schema location.
+- [ ] Client Components cannot import DB internals.
+- [ ] No database credentials are committed.
 
 **Likely areas**:
 
-- `src/features/sources/ebay/server/`
-- `src/features/sources/shared/`
+- `src/lib/db/`
 - `src/lib/env/`
+- `drizzle.config.ts`
 - `.env.local` documentation or ignored example file if needed
 
 **Notes**:
 
-- Use eBay Buy Browse API item summary search first.
-- Use eBay item details later only if summary results do not provide enough Product fields.
-- Do not expose eBay credentials to Client Components.
-- Do not store raw eBay response JSON.
+- Keep the DB module small and explicit.
+- Do not introduce a managed queue or external job system.
 
 ---
 
-#### Task 1.3.3 — Normalize eBay API results into Product without storing raw source JSON
+#### Task 1.3.3 — Create Drizzle Postgres schema for Products, ProductSearchRequests, and CollectionRuns
 
-**Outcome**: Convert eBay item summary responses into the app's normalized `Product` shape and discard raw source payloads after normalization.
+**Outcome**: Add the tables needed for dashboard data, collector coordination, Product persistence, dedup, review states, and run history.
 
 **Status**: TODO
 
 **Done when**:
 
-- [ ] Normalizer maps eBay title to Product title.
-- [ ] Normalizer maps eBay item ID to Product source Product ID.
-- [ ] Normalizer maps eBay item URL to Product source URL.
-- [ ] Normalizer maps price/currency when available.
-- [ ] Normalizer maps image, condition, location, and source where available.
-- [ ] Missing optional eBay fields do not crash normalization.
-- [ ] Product output does not include raw source response JSON.
+- [ ] Product table/schema exists.
+- [ ] ProductSearchRequest table/schema exists.
+- [ ] CollectionRun table/schema exists.
+- [ ] Product schema includes source, source Product ID when available, source URL, title, price/currency, image, condition, location, discovered/last-seen timestamps, and review state.
+- [ ] ProductSearchRequest schema includes name, query, min price, max price, condition, buying option, `source` (an opaque source identifier stored as-is; the dashboard does not enumerate, hardcode, or special-case valid source values), active flag, and timestamps.
+- [ ] ProductSearchRequest is where future recurring-schedule fields will live (MVP 2): `scheduleEnabled`, `intervalMinutes` or `cron`, `lastRunAt`, `nextRunAt`. Do not build them now; this is a forward-compat note so the later additive migration is clean.
+- [ ] CollectionRun schema includes request ID, `status`, `trigger`, started/finished timestamps, `claimedAt`, inserted/updated counts, and a safe error summary.
+- [ ] `trigger` is a value column set to `manual` for runs created by the dashboard now; the later collector scheduler will insert runs with `trigger = 'scheduled'`.
+- [ ] `claimedAt` exists so the collector can claim runs atomically and recover orphaned `running` rows after a crash.
+- [ ] CollectionRun schema does NOT include any recurring-schedule fields (no interval/cron/nextRunAt); a CollectionRun is one execution, not a schedule.
+- [ ] Schema does not include raw source response JSON.
+- [ ] Product schema supports dedup by (source, source Product ID) with (source, source URL) fallback, and preserves `reviewState` and `discoveredAt` when an existing Product is re-seen.
 
 **Likely areas**:
 
-- `src/features/sources/ebay/server/normalizeEbayItem.ts`
-- `src/features/sources/ebay/server/ebayTypes.ts`
+- `src/lib/db/schema.ts`
 - `src/features/products/types/`
+- `src/features/product-search-requests/types/`
+- `src/features/collection-runs/types/`
 
 **Notes**:
 
-- If eBay exposes useful data that does not fit the current Product shape, add an explicit normalized field going forward.
-- Do not backfill old Products unless there is a clear user-facing reason later.
+- Keep schema aligned with normalized `Product`, not raw provider response fields.
+- CollectionRun status is the dashboard-to-collector coordination mechanism.
+- Statuses should at least support `requested`, `running`, `completed`, and `failed` (`cancelled` may be added later).
+- **Patina owns this schema and all `drizzle-kit` migrations. `patina-collector` consumes the same Neon database but must never create or alter tables.** The collector mirrors these shapes as copied TypeScript contracts or read/write query models only.
+- This schema must implement the Database Contract in `./master-project-plan.md` → `## 5. Database Contract`. If the two disagree, reconcile the master plan first, because the collector depends on it.
+- The collector's upsert preserves `reviewState` (written only by the dashboard during triage); the collector writes every Product field except `reviewState`.
 
 ---
 
-#### Task 1.3.4 — Wire run-one Product search request execution to eBay collection
+#### Task 1.3.4 — Persist ProductSearchRequest records via server-side DB helpers
 
-**Outcome**: A user can run one Product search request and receive real eBay-backed Products through the server boundary.
+**Outcome**: Store reusable Product search requests in Neon so the dashboard run modal and `/search-requests` editor share one source of truth.
 
 **Status**: TODO
 
 **Done when**:
 
-- [ ] Running one request calls the server-side collection entrypoint.
-- [ ] Server-side collection invokes the eBay module.
-- [ ] Successful run returns or stages normalized Products.
-- [ ] UI shows a safe success/failure result.
-- [ ] Errors do not expose credentials or raw eBay internals.
+- [ ] Create / edit / delete operate against Neon through server-side query helpers/actions/routes.
+- [ ] `/search-requests` reads requests as server data.
+- [ ] Dashboard run modal reads requests as server data.
+- [ ] Validation still distinguishes required query/name data from optional filters.
+- [ ] No global client store remains for request data.
 
 **Likely areas**:
 
+- `src/features/product-search-requests/server/`
 - `src/features/product-search-requests/components/`
-- `src/features/products/server/`
-- `src/features/sources/ebay/server/`
-- `src/app/actions.ts` or route handler
+- `src/app/`
+- `src/lib/db/`
 
 **Notes**:
 
-- If DB persistence is not implemented yet, Products may be returned transiently only for validating the eBay path. They should not become the long-term dashboard data path.
-- Do not fake eBay results.
+- Replace the Feature 1.2 temporary request state with DB-backed data.
+- Do not add source-specific advanced request builders in this task.
 
 ---
 
-### Feature 1.4 — Product Persistence and DB-Backed Dashboard
+#### Task 1.3.5 — Read ProductSearchRequests from Neon in dashboard and run modal
+
+**Outcome**: Make the dashboard and run modal use DB-backed Product search request data.
+
+**Status**: TODO
+
+**Done when**:
+
+- [ ] Dashboard request summary loads ProductSearchRequests from Neon.
+- [ ] Run modal lists ProductSearchRequests from Neon.
+- [ ] Empty state appears when no requests exist.
+- [ ] Loading/error states remain safe and useful.
+- [ ] Temporary client request store from Feature 1.2 is removed.
+
+**Likely areas**:
+
+- `src/app/`
+- `src/features/product-search-requests/components/`
+- `src/features/product-search-requests/server/`
+
+**Notes**:
+
+- Server Components may fetch initial request data directly through server-side query functions.
+- Client Components should not import DB helpers.
+
+---
+
+### Feature 1.4 — Run-Now Collection Request Flow
 
 #### Overview
 
-**Goal**: Save normalized Products to the database, dedupe them across collection runs, and make the dashboard read from saved Products instead of transient API responses.
+**Goal**: Wire existing run-one/run-all UI so it creates CollectionRun records in Neon. Patina requests work; the separate collector executes work later.
+
+**Status**: TODO
 
 **Done when**:
 
-- [ ] DB package/approach is selected and recorded.
-- [ ] Product schema stores normalized Products only.
-- [ ] Collected Products are inserted or updated.
-- [ ] Dedup prevents repeated Products from reappearing as new.
-- [ ] Dashboard reads Products from DB.
-- [ ] Product search requests are persisted and read as server data (Task 1.4.6).
+- [ ] Running one request creates a CollectionRun with status `requested`.
+- [ ] Running all requests creates CollectionRun records for all selected/active requests.
+- [ ] UI shows that requested runs are waiting for the collector if they have not started.
+- [ ] UI can show requested/running/completed/failed statuses from Neon.
+- [ ] Errors do not expose secrets or raw provider internals.
+- [ ] Patina does not call any external source API.
 
 **Dependencies**:
 
@@ -573,102 +622,126 @@ General overview of the Epics and their statuses.
 
 ---
 
-#### Task 1.4.1 — User runs Drizzle + SQLite install command; AI configures Drizzle schema and migrations after install
+#### Task 1.4.1 — Make run-one create a CollectionRun request
 
-**Outcome**: Install the selected Drizzle + SQLite persistence stack through a user-run command, then configure the schema and migration/init workflow after install.
+**Outcome**: A user can click run for one ProductSearchRequest and create a queued/requested run record in Neon.
 
 **Status**: TODO
 
 **Done when**:
 
-- [ ] AI provides the exact install command for Drizzle ORM, drizzle-kit, and the selected SQLite driver.
-- [ ] User runs the install command and confirms it completed.
-- [ ] AI configures Drizzle after install.
-- [ ] Migration/init strategy is recorded in this roadmap.
-- [ ] The setup supports local MVP 1 and SQLite file persistence in a Docker volume for MVP 2.
+- [ ] Run-one action accepts a saved ProductSearchRequest ID.
+- [ ] Server-side action/route validates that the ProductSearchRequest exists.
+- [ ] Server-side action/route inserts a CollectionRun with status `requested`.
+- [ ] UI shows safe feedback that the run was requested.
+- [ ] UI does not imply the Product collection already happened.
 
 **Likely areas**:
 
-- `package.json`
-- `src/lib/db/`
-- `./project-implementation-roadmap.md`
+- `src/features/product-search-requests/components/`
+- `src/features/collection-runs/server/`
+- `src/features/collection-runs/types/`
+- `src/app/actions.ts` or route handler
 
 **Notes**:
 
-- Drizzle ORM + SQLite is the selected MVP 1 persistence approach.
-- Start with `better-sqlite3` unless implementation reveals a compatibility issue.
-- If installation or migration commands are needed, follow the User-Run Generated Commands section.
+- Do not execute source collection in this task.
+- If the collector is off, the run remains `requested`.
 
 ---
 
-#### Task 1.4.2 — Create Drizzle SQLite schema for Products without raw source JSON storage
+#### Task 1.4.2 — Make run-all create CollectionRun requests for selected/active requests
 
-**Outcome**: Add the database schema needed to store normalized Product records, source identity, dedup fields, timestamps, and review state.
+**Outcome**: A user can click run all and create requested run records for multiple saved ProductSearchRequests.
 
 **Status**: TODO
 
 **Done when**:
 
-- [ ] Drizzle schema exists.
-- [ ] Product table/schema exists.
-- [ ] Schema includes source, source Product ID when available, source URL, title, price/currency, image, condition, location, discovered/last-seen timestamps, and review state.
-- [ ] Schema does not include raw source response JSON.
-- [ ] Schema can support `new`, `interested`, and `rejected`.
-- [ ] Schema supports dedup by source/source Product ID and URL fallback where needed.
+- [ ] Run-all action reads selected/active ProductSearchRequests from Neon.
+- [ ] One CollectionRun is created per ProductSearchRequest for MVP simplicity.
+- [ ] Failures creating one run do not falsely report that all runs were requested.
+- [ ] UI shows a safe summary of how many runs were requested.
+- [ ] UI can surface validation errors without exposing internals.
 
 **Likely areas**:
 
-- `src/lib/db/`
-- Migration/init files for the chosen DB approach
-- `src/features/products/types/`
-
-**Notes**:
-
-- Keep the schema aligned with normalized `Product`, not eBay raw response fields.
-- If future fields are needed, add explicit normalized columns going forward.
-
----
-
-#### Task 1.4.3 — Save normalized Products through Drizzle query helpers while preserving existing review state
-
-**Outcome**: Insert or update Products collected from eBay without resetting user review decisions when the same Product is seen again.
-
-**Status**: TODO
-
-**Done when**:
-
-- [ ] Collected Products are saved to SQLite through Drizzle query helpers.
-- [ ] Existing Products are updated with last-seen/collection metadata without duplicating rows.
-- [ ] Existing review state is preserved when a Product is seen again.
-- [ ] New Products default to `new`.
-- [ ] Save operation returns a concise count of inserted/updated Products.
-
-**Likely areas**:
-
-- `src/features/products/server/`
-- `src/lib/db/`
+- `src/features/product-search-requests/components/`
+- `src/features/product-search-requests/server/`
 - `src/features/collection-runs/server/`
 
 **Notes**:
 
-- Do not add price-history metrics in MVP 1.
-- Do not store raw source JSON.
+- Do not add a batch/group model unless implementation proves it is needed.
+- Do not add a scheduler here.
 
 ---
 
-#### Task 1.4.4 — Display saved Products from DB in dashboard
+#### Task 1.4.3 — Show CollectionRun status in the dashboard/run modal
 
-**Outcome**: Make the dashboard load saved Products from the database as its primary Product source.
+**Outcome**: Make requested/running/completed/failed statuses visible so the user understands whether the collector has picked up work.
 
 **Status**: TODO
 
 **Done when**:
 
-- [ ] Dashboard loads Products from SQLite through server-side Drizzle query helpers.
+- [ ] Dashboard can show recent CollectionRun records.
+- [ ] Run modal or nearby status area can show requested/running/completed/failed states.
+- [ ] Requested runs clearly indicate they are waiting for the collector.
+- [ ] Completed runs show inserted/updated counts when available.
+- [ ] Failed runs show safe error summaries.
+
+**Likely areas**:
+
+- `src/features/collection-runs/components/`
+- `src/features/collection-runs/server/`
+- `src/app/`
+
+**Notes**:
+
+- MVP 1 can use refresh/revalidation after actions. Near-real-time polling/streaming can wait.
+- Do not add a persistent app-wide run-status widget unless the roadmap is updated.
+
+---
+
+### Feature 1.5 — Product Triage, Filters, and Run History UI
+
+#### Overview
+
+**Goal**: Make the DB-backed dashboard useful after Products are written to Neon by the collector or test data path.
+
+**Status**: TODO
+
+**Done when**:
+
+- [ ] Dashboard reads Products from Neon.
+- [ ] Temporary seed Product usage is removed or clearly disabled.
+- [ ] User can mark Products as `new`, `interested`, or `rejected`.
+- [ ] Review state persists after reload.
+- [ ] Re-seeing a Product does not reset review state.
+- [ ] Dashboard can filter by review state, source, and Product search request when available.
+- [ ] Basic collection/search history exists if needed for MVP usability.
+
+**Dependencies**:
+
+- Feature 1.3.
+- Feature 1.4 for run history/status.
+
+---
+
+#### Task 1.5.1 — Display saved Products from Neon in dashboard
+
+**Outcome**: Make the dashboard load saved Products from Neon as its primary Product source.
+
+**Status**: TODO
+
+**Done when**:
+
+- [ ] Dashboard loads Products from Neon through server-side query helpers.
 - [ ] Empty state appears when DB has no Products.
-- [ ] Newly collected Products appear after a successful collection run.
-- [ ] Product UI no longer depends on transient eBay response state for the main dashboard.
+- [ ] Product UI no longer depends on temporary seed Products for the main dashboard.
 - [ ] Missing optional fields render safely.
+- [ ] Product list/card components still depend on `Product`, not DB row internals.
 
 **Likely areas**:
 
@@ -681,89 +754,13 @@ General overview of the Epics and their statuses.
 
 - Server Components may fetch initial Product data directly through server-side Product query functions.
 - Client Components should not import DB helpers.
-- Remove the temporary seed Products from Task 1.2.1a once DB-backed Products are the dashboard source.
+- Remove or clearly disable temporary seed Product usage once this lands.
 
 ---
 
-#### Task 1.4.5 — Wire run-all Product search request execution to save Products from every request
+#### Task 1.5.2 — Add Product review state updates: new, interested, rejected
 
-**Outcome**: The user can run all saved Product search requests and persist the collected Products into the database.
-
-**Status**: TODO
-
-**Done when**:
-
-- [ ] Run-all action executes each saved Product search request.
-- [ ] Each request uses the server-side Product collection path.
-- [ ] Products from all successful requests are saved to DB.
-- [ ] Failures for one request do not erase Products from successful requests.
-- [ ] UI shows safe summary feedback for total inserted/updated Products and failures.
-
-**Likely areas**:
-
-- `src/features/product-search-requests/components/`
-- `src/features/product-search-requests/server/`
-- `src/features/products/server/`
-- `src/features/collection-runs/server/`
-
-**Notes**:
-
-- Run-all is still manually triggered in MVP 1.
-- Do not add scheduled collection here.
-- After run-all completes, the dashboard refetches/revalidates to show newly saved Products (MVP 1 = refresh once on completion). Incremental "fill in as each search finishes" is the MVP 2 background experience (see Feature 2.2), not MVP 1.
-
----
-
-#### Task 1.4.6 — Persist ProductSearchRequest records via Drizzle and read them as server data
-
-**Outcome**: Store reusable Product search requests in SQLite via Drizzle so the dashboard run modal and the `/search-requests` editor share one source of truth, replacing the temporary in-memory request store from Feature 1.2.
-
-**Status**: TODO
-
-**Done when**:
-
-- [ ] Drizzle schema includes a Product search request table (name, query, min price, max price, condition, buying option, timestamps).
-- [ ] Create / edit / delete operate against the DB through server-side query helpers.
-- [ ] Both `/` (run modal) and `/search-requests` read requests as server data; the in-memory client store from Task 1.2.2 is removed.
-- [ ] No global client store remains for request data.
-
-**Likely areas**:
-
-- `src/lib/db/`
-- `src/features/product-search-requests/server/`
-- `src/features/product-search-requests/components/`
-
-**Notes**:
-
-- Closes the gap where Feature 1.4 originally persisted only Products; the master plan stores search requests in the DB as well.
-- Reuses the Drizzle setup from Task 1.4.1.
-- The Feature 1.2 in-memory request state is intentionally kept simple and easy to delete because this Task replaces it.
-
----
-
-### Feature 1.5 — Product Review States, Filters, and Collection History
-
-#### Overview
-
-**Goal**: Let the user triage saved Products, focus the dashboard, and see basic collection history.
-
-**Done when**:
-
-- [ ] User can mark Products as `new`, `interested`, or `rejected`.
-- [ ] Review state persists after reload.
-- [ ] Re-seeing a Product does not reset review state.
-- [ ] Dashboard can filter by review state.
-- [ ] Basic collection/search history exists if needed for MVP usability.
-
-**Dependencies**:
-
-- Feature 1.4.
-
----
-
-#### Task 1.5.1 — Add Product review states: new, interested, rejected
-
-**Outcome**: Let the user classify Products using the review states that drive dashboard triage.
+**Outcome**: Let the user classify Products using review states that drive dashboard triage.
 
 **Status**: TODO
 
@@ -774,7 +771,7 @@ General overview of the Epics and their statuses.
 - [ ] User can mark a Product as `rejected`.
 - [ ] User can return a Product to `new` if needed.
 - [ ] Review state persists after reload.
-- [ ] Re-seeing an existing Product does not reset review state.
+- [ ] Query helpers preserve review state when an existing Product is seen again.
 
 **Likely areas**:
 
@@ -789,7 +786,7 @@ General overview of the Epics and their statuses.
 
 ---
 
-#### Task 1.5.2 — Add dashboard filters for review state, source, and Product search request when available
+#### Task 1.5.3 — Add dashboard filters for review state, source, and Product search request when available
 
 **Outcome**: Let the user focus the dashboard on subsets of saved Products.
 
@@ -817,49 +814,50 @@ General overview of the Epics and their statuses.
 
 ---
 
-#### Task 1.5.3 — Add collection run records for Product search request execution history
+#### Task 1.5.4 — Add collection run history display
 
-**Outcome**: Track when Product search requests ran, what happened, and how many Products were collected.
+**Outcome**: Show when Product search requests ran, what happened, and how many Products were collected.
 
 **Status**: TODO
 
 **Done when**:
 
-- [ ] Collection run record is created when one request runs.
-- [ ] Collection run record is created when run-all runs.
+- [ ] Recent CollectionRun records appear in the dashboard or a run history area.
 - [ ] Run records include request, started/finished time, status, inserted/updated counts, and safe error summary if relevant.
-- [ ] Dashboard can show basic last-run feedback.
+- [ ] Dashboard can show basic last-run feedback per request when useful.
 - [ ] Error summaries avoid secrets and raw provider internals.
 
 **Likely areas**:
 
+- `src/features/collection-runs/components/`
 - `src/features/collection-runs/server/`
-- `src/features/collection-runs/types/`
 - `src/features/product-search-requests/components/`
 - `src/lib/db/`
 
 **Notes**:
 
-- This prepares MVP 2 scan health without adding a scheduler now.
+- This prepares collector health/scheduler UX without adding a scheduler now.
 
 ---
 
-#### Task 1.5.4 — MVP 1 local acceptance pass and roadmap status update
+#### Task 1.5.5 — MVP 1 local acceptance pass and roadmap status update
 
-**Outcome**: Confirm the local eBay Product dashboard works end to end and update roadmap status before MVP 2 begins.
+**Outcome**: Confirm the local Patina dashboard/control plane works end to end and update roadmap status before collector integration work begins.
 
 **Status**: TODO
 
 **Done when**:
 
 - [ ] User can create a Product search request.
-- [ ] User can run one Product search request.
-- [ ] User can run all Product search requests.
-- [ ] eBay-backed Products are normalized and saved.
-- [ ] Dashboard displays saved Products from DB.
+- [ ] User can edit/delete a Product search request.
+- [ ] User can request one run.
+- [ ] User can request all runs.
+- [ ] CollectionRun records are created in Neon.
+- [ ] Dashboard displays CollectionRun status/history from Neon.
+- [ ] Dashboard displays saved Products from Neon.
 - [ ] User can mark Products `new`, `interested`, or `rejected`.
 - [ ] MVP 1 task statuses are updated.
-- [ ] Any known limitations are recorded before MVP 2 starts.
+- [ ] Any known limitations are recorded before collector work begins.
 
 **Likely areas**:
 
@@ -868,266 +866,84 @@ General overview of the Epics and their statuses.
 
 **Notes**:
 
-- Do not begin MVP 2 coding until this acceptance pass and roadmap update are complete.
-- If eBay production access is blocked, update the roadmap before continuing.
+- Do not begin collector execution inside Patina. Collector implementation belongs in `patina-collector`.
+- If source access constraints change the product direction, update the Master Project Plan and this roadmap before coding further.
 
 ---
 
-## Epic 2 — MVP 2: Containerized Oracle/Tailscale Scheduled App
+## Epic 2 — MVP 1.5: Collector Integration Contract
 
-**Epic Goal**: Containerize the local app, deploy it on an Oracle Cloud Always Free VM behind Tailscale/VPN, persist the SQLite database file in a Docker volume, add scheduled Product collection, show collection health, and optionally add ntfy notifications.
+**Epic Goal**: Keep Patina compatible with the separate collector service through shared database records without putting source execution in the Patina dashboard repo.
+
+**Status**: Later
 
 **Done when**:
 
-- [ ] App can run from a containerized setup.
-- [ ] App is reachable only through private VPN/Tailscale access.
-- [ ] App runs on an Oracle Cloud Always Free VM unless the roadmap is updated.
-- [ ] SQLite database file persists through a Docker volume.
-- [ ] Hosted configuration uses environment variables and does not commit secrets.
-- [ ] Scheduled collection can run saved Product search requests.
-- [ ] Dashboard shows collection health or last-run status.
-- [ ] Optional ntfy notifications are added only if still desired.
+- [ ] Patina's CollectionRun schema/statuses are sufficient for collector polling/claiming.
+- [ ] Patina can display statuses written by the collector.
+- [ ] Patina can display Products written by the collector.
+- [ ] Patina does not import collector code or source adapters.
 
----
-
-### Feature 2.1 — Docker and Hosted Runtime
+### Feature 2.1 — Collector Contract Review
 
 #### Overview
 
-**Goal**: Add containerized runtime and private Oracle/Tailscale hosted deployment after MVP 1 proves the local Product dashboard and eBay flow.
+**Goal**: Review the shared database contract after the first collector implementation exists and adjust only if necessary.
+
+**Status**: Later
+
+**Notes**:
+
+- Define detailed tasks when `patina-collector` implementation reaches the DB polling/product write path.
+- Avoid creating a separate shared package until duplication becomes painful.
+- Prefer the database schema and narrow copied TypeScript contracts over cross-importing UI code into the collector.
+
+---
+
+## Epic 3 — MVP 2: Hosted/Remote Dashboard Access
+
+**Epic Goal**: Make the Patina dashboard reachable from personal devices after the local Neon-backed dashboard is useful.
+
+**Status**: Later
 
 **Done when**:
 
-- [ ] Docker/containerized runtime starts the app.
-- [ ] SQLite database file persists through a Docker volume across restarts.
-- [ ] Hosted env configuration is documented.
-- [ ] App can be deployed to an Oracle Cloud Always Free VM behind VPN/Tailscale without public exposure.
+- [ ] Hosting target is chosen.
+- [ ] Dashboard can run against Neon in hosted configuration.
+- [ ] Secrets are configured through host environment variables.
+- [ ] Access is protected appropriately for personal use.
+- [ ] Collector can remain local and connect outbound to Neon.
 
-**Dependencies**:
-
-- Epic 1 complete.
-
----
-
-#### Task 2.1.1 — Add Docker/containerized runtime with SQLite file persistence in a Docker volume
-
-**Outcome**: Containerize the proven local app and persist the SQLite database file through a Docker volume.
-
-**Status**: Later
-
-**Notes**:
-
-- Define done checks, likely areas, and task-specific notes when this work is close to implementation.
-- Preserve local development flow from MVP 1.
-
----
-
-#### Task 2.1.2 — Configure Oracle Cloud Always Free VM hosting behind Tailscale/VPN
-
-**Outcome**: Make the hosted app reachable from personal devices through Tailscale/VPN without public internet exposure.
-
-**Status**: Later
-
-**Notes**:
-
-- Define done checks, likely areas, and task-specific notes when this work is close to implementation.
-
----
-
-### Feature 2.2 — Scheduled Product Collection and Health
+### Feature 3.1 — Decide dashboard hosting/access path
 
 #### Overview
 
-**Goal**: Run saved Product search requests automatically and make failures visible.
-
-**Done when**:
-
-- [ ] Scheduler can run saved Product search requests.
-- [ ] Scheduler is configurable and can be disabled.
-- [ ] Collection run records show scheduled success/failure.
-- [ ] Dashboard shows basic health/last-run information.
-
-**Dependencies**:
-
-- Feature 2.1.
-
----
-
-#### Task 2.2.1 — Add configurable scheduler for saved Product search requests
-
-**Outcome**: Run Product search requests on a schedule after hosted/containerized runtime exists.
+**Goal**: Choose the simplest remote access setup once MVP 1 is useful.
 
 **Status**: Later
 
 **Notes**:
 
-- Define done checks, likely areas, and task-specific notes when this work is close to implementation.
-- Do not introduce a managed queue unless the roadmap is updated.
-- Target run UX (carried from the MVP 1 run modal, Task 1.2.3): the run modal can minimize into a persistent, app-wide run-status toast/widget that survives client-side navigation. Clicking it reopens a panel showing per-request status (queued / running / done / failed). As scheduled or background runs complete, the dashboard fills in with newly saved Products in near-real-time (revalidation, polling, or streaming). This needs the scheduler/worker from this Feature plus persistence (Feature 1.4); it is intentionally deferred out of MVP 1, where runs are synchronous and manual.
+- Candidate paths include Vercel, Oracle Cloud, or a home machine behind Tailscale.
+- Neon remains the DB either way.
+- Do not assume Oracle/Tailscale is required unless the deployment decision points there.
 
 ---
 
-#### Task 2.2.2 — Show scheduled collection health and last-run status
+## Epic 4 — Later: Additional Source Adapter Support
 
-**Outcome**: Make silent scheduled collection failures visible in the dashboard.
-
-**Status**: Later
-
-**Notes**:
-
-- Define done checks, likely areas, and task-specific notes when this work is close to implementation.
-
----
-
-### Feature 2.3 — Optional Notifications
-
-#### Overview
-
-**Goal**: Notify the user through ntfy when scheduled collection finds new Products, if notifications still feel useful after MVP 1.
-
-**Done when**:
-
-- [ ] Notification decision is confirmed.
-- [ ] ntfy provider/config is documented if notifications are added.
-- [ ] New Products can trigger safe notifications.
-- [ ] Notification failures do not break Product persistence.
-
-**Dependencies**:
-
-- Feature 2.2.
-
----
-
-#### Task 2.3.1 — Decide whether ntfy notifications belong in MVP 2 after scheduled collection works
-
-**Outcome**: Avoid adding ntfy notification infrastructure before the user knows whether scheduled collection produces enough value.
-
-**Status**: Later
-
-**Notes**:
-
-- If added, default to ntfy.
-- The Oracle-hosted scheduler can publish outbound to ntfy even when the Patina dashboard itself is private behind Tailscale.
-- Use a long random topic or stronger ntfy access controls.
-- Do not send sensitive Product details unless the notification setup is private enough.
-- Define done checks, likely areas, and task-specific notes when this work is close to implementation.
-
----
-
-## Epic 3 — MVP 3: Craigslist Source Expansion
-
-**Epic Goal**: Validate and add Craigslist as another Product source without changing the dashboard, DB, filters, or review workflow away from normalized `Product`.
-
-**Done when**:
-
-- [ ] Acceptable Craigslist source path is validated.
-- [ ] Craigslist module returns `Product[]`.
-- [ ] Craigslist Products save to DB through the existing Product persistence path.
-- [ ] Dashboard displays Craigslist Products using the same Product components.
-- [ ] Source-specific behavior stays inside the Craigslist module.
-
----
-
-### Feature 3.1 — Craigslist Source Path Validation
-
-#### Overview
-
-**Goal**: Verify the acceptable way to collect Craigslist results before committing to the adapter implementation.
-
-**Done when**:
-
-- [ ] Source path is documented.
-- [ ] If the source path is not acceptable or reliable, Craigslist implementation is deferred.
-- [ ] No Craigslist HTML scraping is introduced unless the master plan and roadmap are updated with a verified acceptable approach.
-
-**Dependencies**:
-
-- Epic 1 complete.
-
----
-
-#### Task 3.1.1 — Validate acceptable Craigslist source path before adding Craigslist module
-
-**Outcome**: Decide whether Craigslist can be added safely and usefully before implementing source code.
-
-**Status**: Later
-
-**Notes**:
-
-- Define done checks, likely areas, and task-specific notes when this work is close to implementation.
-
----
-
-### Feature 3.2 — Craigslist Product Source Module
-
-#### Overview
-
-**Goal**: Add Craigslist as another source module only after source path validation.
-
-**Done when**:
-
-- [ ] Craigslist source module maps source results to `Product[]`.
-- [ ] Products save through the existing Product persistence path.
-- [ ] Missing optional fields do not break Product normalization.
-- [ ] Dashboard remains source-agnostic.
-
-**Dependencies**:
-
-- Feature 3.1.
-
----
-
-#### Task 3.2.1 — Add Craigslist module that maps validated Craigslist source results to Product[]
-
-**Outcome**: Add Craigslist as a second source without rewriting Product dashboard or Product persistence.
-
-**Status**: Later
-
-**Notes**:
-
-- Define done checks, likely areas, and task-specific notes when this work is close to implementation.
-
----
-
-## Epic 4 — Later: Facebook External Adapter Boundary
-
-**Epic Goal**: Preserve the option to add Facebook later from another repo without implementing Facebook collection in the main app during MVP 1 or MVP 2.
-
-**Done when**:
-
-- [ ] Current source boundary can accept another module that returns `Product[]`.
-- [ ] Main app does not depend on Facebook-specific fields.
-- [ ] No Facebook collection, Playwright automation, session handling, or anti-detection/evasion behavior exists in MVP 1 or MVP 2.
-- [ ] Any future Facebook work is planned separately before implementation.
-
----
-
-### Feature 4.1 — External Facebook Adapter Compatibility
-
-#### Overview
-
-**Goal**: Keep the source boundary small and practical so a future Facebook module can be integrated without building a speculative plugin framework now.
-
-**Done when**:
-
-- [ ] Source module contract is reviewed after eBay and Craigslist lessons.
-- [ ] The contract is still centered on `ProductSearchRequest` and `Product[]` or a clearly updated equivalent.
-- [ ] No Facebook-specific implementation is added as part of this review.
-
-**Dependencies**:
-
-- At least one working source module.
-
----
-
-#### Task 4.1.1 — Review source module boundary for future external Facebook adapter without implementing Facebook collection
-
-**Outcome**: Confirm the main app can accept a future Facebook module from another repo while keeping Facebook out of the current implementation.
+**Epic Goal**: Keep Patina source-agnostic while source adapters live in `patina-collector`.
 
 **Status**: Deferred
 
-**Notes**:
+**Done when**:
 
-- Define done checks, likely areas, and task-specific notes only if Facebook becomes active scope.
-- Do not build a heavy plugin system without real integration pressure.
-- Do not add Facebook scraping, Playwright, session handling, CAPTCHA handling, fingerprint spoofing, stealth behavior, or anti-detection behavior.
+- [ ] Source-specific request fields are added only when an approved source actually needs them.
+- [ ] Patina can display Products from multiple sources through normalized Product records.
+- [ ] Source filtering works without dashboard source-specific logic.
+
+### Deferred Source Notes
+
+- The dashboard stays source-agnostic. Which sources exist, whether they are validated, and how Products are collected are owned by `patina-collector` and intentionally outside the dashboard's knowledge.
+- The dashboard must never enumerate or special-case a specific source. New sources require no dashboard changes beyond storing/displaying their opaque `source` value.
+- No source adapter, source credential, or browser automation is ever added to the Patina dashboard repo.
